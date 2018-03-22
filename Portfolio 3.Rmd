@@ -224,6 +224,49 @@ plot_NV
 
 plot_grid(plot_S, plot_V, plot_NV)
 
+# To get numeric estimate for residual
+
+data3$NVIQ_res = m.resid_NV
+data3$VIQ_res = m.resid_V
+data3$SIQ_res = m.resid_S
+
+m_NonVerbal_res=map(
+  alist(
+    ADOS ~ dnorm( mu , sigma ),
+    mu <- Intercept +
+        b_NVIQ*NVIQ_res,
+    Intercept ~ dnorm(0,5),
+    b_NVIQ ~ dnorm(0,5),
+    sigma ~ dunif(0,10)
+), data = data3)
+
+precis(m_NonVerbal_res)
+
+m_Verbal_res=map(
+  alist(
+    ADOS ~ dnorm( mu , sigma ),
+    mu <- Intercept +
+        b_VIQ*VIQ_res,
+    Intercept ~ dnorm(0,5),
+    b_VIQ ~ dnorm(0,5),
+    sigma ~ dunif(0,10)
+), data = data3)
+
+precis(m_Verbal_res)
+
+m_Social_res=map(
+  alist(
+    ADOS ~ dnorm( mu , sigma ),
+    mu <- Intercept +
+        b_SIQ*SIQ_res,
+    Intercept ~ dnorm(0,5),
+    b_SIQ ~ dnorm(0,5),
+    sigma ~ dunif(0,10)
+), data = data3)
+
+precis(m_Social_res)
+
+
 #The plots show how much variance each variable explains when the other two variables has been used. 
 #It looks like SocialIQ explains the most when VerbalIQ and NonVerbalIQ have explained, but all three variables contribute with unique information so we will make a model with all three variables:
 
@@ -312,6 +355,22 @@ lines( rep(data4$ADOS[i],2) , c(mu.HPDI[1,i],mu.HPDI[2,i]) ,
 col=rangi2 )
 
 
+#Adding ASD as predictor
+data4$ASD = as.integer(data4$ASD)
+glimmer(ADOS ~ SocialIQ + VerbalIQ + NonVerbalIQ + ASD, data4)
+m5 <- map(alist(ADOS~dnorm(mu, sigma), 
+                  mu <- a + b_S*SocialIQ + b_V*VerbalIQ + b_NV*NonVerbalIQ + b_ASD*ASD, 
+                  a ~ dnorm(0,10),
+                  b_S ~ dnorm(0,1),
+                  b_V ~ dnorm(0,1),
+                  b_NV ~ dnorm(0,1),
+                  b_ASD ~ dnorm(0,5),
+                  sigma ~ dunif(0,10)), data = data4)
+#What are the values of the model
+precis(m5)
+plot(precis(m5))
+
+
 ```
 
 4. Let's discuss contents:
@@ -386,38 +445,6 @@ plot_grid(plot_S_TD, plot_V_TD, plot_NV_TD)
 
 
 
-#The plots show how much variance each variable explains when the other two variables has been used. 
-#It looks like SocialIQ explains the most when VerbalIQ and NonVerbalIQ have explained, but all three variables contribute with unique information so we will make a model with all three variables:
-
-#Building a model with the relevant IQ measures in. 
-m1 <- map(alist(ADOS~dnorm(mu, sigma), 
-                  mu <- a + b_S*SocialIQ + b_V*VerbalIQ + b_NV*NonVerbalIQ, 
-                  a ~ dnorm(0,10),
-                  b_S ~ dnorm(0,10),
-                  b_V ~ dnorm(0,10),
-                  b_NV ~ dnorm(0,10),
-                  sigma ~ dunif(0,15)), data = data3)
-#What are the values of the model
-precis(m1)
-plot(precis(m1))
-
-#Quality check of the model
-mu <- link( m1)
-# summarize samples across cases
-mu.mean <- apply( mu , 2 , mean )
-mu.HPDI <- apply( mu , 2 , HPDI )
-# simulate observations
-# again no new data, so uses original data
-ADOS.sim <- sim( m1 , n=1e4 )
-ADOS.HPDI <- apply( ADOS.sim , 2 , HPDI )
-
-#plotting
-plot( mu.mean ~ data3$ADOS , col=rangi2 , ylim=range(mu.HPDI) ,
-xlab="Observed ADOS" , ylab="Predicted ADOS" )
-abline( a=0 , b=1 , lty=2 )
-for ( i in 1:nrow(data3) )
-lines( rep(data3$ADOS[i],2) , c(mu.HPDI[1,i],mu.HPDI[2,i]) ,
-col=rangi2 )
 ```
 
 5. Bonus questions: Including measurement errors. 
