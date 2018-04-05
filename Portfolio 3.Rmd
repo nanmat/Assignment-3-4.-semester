@@ -1,6 +1,6 @@
 ---
 title: "Assignment3"
-author: "RF"
+author: "Nanna Mathiasen, Simon Hansen, Alberte Seeberg, Esther Dyngby"
 date: "3/6/2018"
 output: html_document
 ---
@@ -47,27 +47,27 @@ verbalIQ <- map(alist(ADOS~dnorm(mu, sigma),
 precis(verbalIQ, corr = TRUE)
 
 #Plotting the values
-# Adjusting the scale, we want values from -10 to 15. by makes a datapoint for each 0.1. 
+# Adjusting the scale, we want values from -10 to 15. "by" makes a datapoint for each 0.1. 
 ScaleVIQ.seq <- seq( from=-10 , to=15 , by=0.1 )
 # Simulating 1000 data points for each point on the scale
 mu <- link(verbalIQ, data=data.frame(VerbalIQ=ScaleVIQ.seq) )
 str(mu)
-#Making more variables
+#Calculate mean and HPDI for each data point
 mu.mean <- apply( mu , 2 , mean )
 mu.HPDI <- apply( mu , 2 , HPDI , prob=0.89 )
 
+#Simulate data points from the model in the sequence just made.
 sim.ADOS <- sim(verbalIQ , data=list(VerbalIQ=ScaleVIQ.seq) )
-#summarizing the distribution of the simulation
+#Calculating HPDI for each data point in the model so we can investigate the model and make the plot
 ADOS.HPDI <- apply( sim.ADOS , 2 , HPDI , prob=0.89 )
 
 # plot raw data
 plot(ADOS ~ VerbalIQ , data , col=col.alpha(rangi2,0.5) )
 # draw MAP line, there is a point for each 0.1 so it becomes a line 
 lines( ScaleVIQ.seq , mu.mean )
-# draw HPDI region for line, there are two HPDI values making a shade that shows the uncertainty of the line
-# alpha, beta, SD
+# draw HPDI region for line, there are two HPDI values making a shade that shows the uncertainty of the line/model
 shade(mu.HPDI , ScaleVIQ.seq)
-# draw PI region for simulated ADOS, the percentile interval. 
+# draw HPDI region for simulated ADOS, the percentile interval. The uncertainty of the variables in the model
 shade(ADOS.HPDI , ScaleVIQ.seq)
 
 
@@ -90,12 +90,13 @@ ScaleVIQ.seq <- seq( from=-20 , to=30 , by=0.1 )
 # Simulating 1000 data points for each point on the scale
 mu <- link(socialIQ, data=data.frame(SocialIQ=ScaleVIQ.seq) )
 str(mu)
-#Making more variables
+#Calculate mean and HPDI for each data point
 mu.mean <- apply( mu , 2 , mean )
 mu.HPDI <- apply( mu , 2 , HPDI , prob=0.89 )
 
+#Simulate data points from the model in the sequence just made.
 sim.ADOS <- sim(socialIQ , data=list(SocialIQ=ScaleVIQ.seq) )
-#summarizing the distribution of the simulation
+#Calculating HPDI for each data point in the model so we can investigate the model and make the plot
 ADOS.HPDI <- apply( sim.ADOS , 2 , HPDI , prob=0.89 )
 
 # plot raw data
@@ -103,9 +104,8 @@ plot(ADOS ~ SocialIQ , data , col=col.alpha(rangi2,0.5) )
 # draw MAP line, there is a point for each 0.1 so it becomes a line 
 lines( ScaleVIQ.seq , mu.mean )
 # draw HPDI region for line, there are two HPDI values making a shade that shows the uncertainty of the line
-# alpha, beta, SD
 shade(mu.HPDI , ScaleVIQ.seq)
-# draw PI region for simulated ADOS, the percentile interval. 
+# draw HPDI region for simulated ADOS, the percentile interval. 
 shade(ADOS.HPDI , ScaleVIQ.seq)
 
 
@@ -129,12 +129,13 @@ ScaleVIQ.seq <- seq( from=-20 , to=30 , by=0.1 )
 # Simulating 1000 data points for each point on the scale
 mu <- link(nonverbalIQ, data=data.frame(NonVerbalIQ=ScaleVIQ.seq) )
 str(mu)
-#Making more variables
+#Calculate mean and HPDI for each data point
 mu.mean <- apply( mu , 2 , mean )
 mu.HPDI <- apply( mu , 2 , HPDI , prob=0.89 )
 
+#Simulate data points from the model in the sequence just made.
 sim.ADOS <- sim(nonverbalIQ , data=list(NonVerbalIQ=ScaleVIQ.seq) )
-#summarizing the distribution of the simulation
+#Calculating HPDI for each data point in the model so we can investigate the model and make the plot
 ADOS.HPDI <- apply( sim.ADOS , 2 , HPDI , prob=0.89 )
 
 # plot raw data
@@ -142,9 +143,8 @@ plot(ADOS ~ NonVerbalIQ , data , col=col.alpha(rangi2,0.5) )
 # draw MAP line, there is a point for each 0.1 so it becomes a line 
 lines( ScaleVIQ.seq , mu.mean )
 # draw HPDI region for line, there are two HPDI values making a shade that shows the uncertainty of the line
-# alpha, beta, SD
 shade(mu.HPDI , ScaleVIQ.seq)
-# draw PI region for simulated ADOS, the percentile interval. 
+# draw HPDI region for simulated ADOS, the percentile interval. 
 shade(ADOS.HPDI , ScaleVIQ.seq)
 ```
 
@@ -163,9 +163,9 @@ data2 = subset(data2, Visit == 1)
 data2 = subset(data2, ASD == 1)
 
 ### Correlation test
-cor.test(data2$VerbalIQ, data$SocialIQ)
-cor.test(data2$VerbalIQ, data$NonVerbalIQ)
-cor.test(data2$NonVerbalIQ, data$SocialIQ)
+cor.test(data2$VerbalIQ, data2$SocialIQ)
+cor.test(data2$VerbalIQ, data2$NonVerbalIQ)
+cor.test(data2$NonVerbalIQ, data2$SocialIQ)
 
 
 #Scaling the data
@@ -177,6 +177,7 @@ data3$NonVerbalIQ = scale(data3$NonVerbalIQ)
 data3$VerbalIQ = scale(data3$VerbalIQ)
 data3$SocialIQ = scale(data3$SocialIQ)
 
+#To investigate the unique contribution of each variable we create new models
 #Social model
 m_S <- map(alist(SocialIQ~dnorm(mu, sigma), 
                   mu <- a + b_V*VerbalIQ + b_NV*NonVerbalIQ, 
@@ -224,12 +225,13 @@ plot_NV
 
 plot_grid(plot_S, plot_V, plot_NV)
 
-# To get numeric estimate for residual
+# To add the residuals found above to the data 
 
 data3$NVIQ_res = m.resid_NV
 data3$VIQ_res = m.resid_V
 data3$SIQ_res = m.resid_S
 
+# Creating a model that predicts ADOS from the residuals 
 m_NonVerbal_res=map(
   alist(
     ADOS ~ dnorm( mu , sigma ),
@@ -267,28 +269,25 @@ m_Social_res=map(
 precis(m_Social_res)
 
 
-#The plots show how much variance each variable explains when the other two variables has been used. 
-#It looks like SocialIQ explains the most when VerbalIQ and NonVerbalIQ have explained, but all three variables contribute with unique information so we will make a model with all three variables:
-
-#Building a model with the relevant IQ measures in. 
+# Building a model with the relevant IQ measures in (all IQ measures). 
 m1 <- map(alist(ADOS~dnorm(mu, sigma), 
                   mu <- a + b_S*SocialIQ + b_V*VerbalIQ + b_NV*NonVerbalIQ, 
-                  a ~ dnorm(0,10),
-                  b_S ~ dnorm(0,10),
-                  b_V ~ dnorm(0,10),
-                  b_NV ~ dnorm(0,10),
-                  sigma ~ dunif(0,15)), data = data3)
+                  a ~ dnorm(0,5),
+                  b_S ~ dnorm(0,5),
+                  b_V ~ dnorm(0,5),
+                  b_NV ~ dnorm(0,5),
+                  sigma ~ dunif(0,10)), data = data3)
 #What are the values of the model
 precis(m1)
 plot(precis(m1))
 
+
 #Quality check of the model
 mu <- link( m1)
-# summarize samples across cases
+# calculating mean and HPDI for each data point
 mu.mean <- apply( mu , 2 , mean )
 mu.HPDI <- apply( mu , 2 , HPDI )
 # simulate observations
-# again no new data, so uses original data
 ADOS.sim <- sim( m1 , n=1e4 )
 ADOS.HPDI <- apply( ADOS.sim , 2 , HPDI )
 
@@ -324,23 +323,24 @@ m4 <- map(alist(ADOS~dnorm(mu, sigma),
                   sigma ~ dunif(0,10)), data = data4)
 #What are the values of the model
 precis(m4)
-plot(precis(m1))
+plot(precis(m4))
 
 #Quality check of the model
 mu <- link( m4)
-# summarize samples across cases
+# calculating mean and HPDI for each data point
 mu.mean <- apply( mu , 2 , mean )
 mu.HPDI <- apply( mu , 2 , HPDI )
 # simulate observations
-# again no new data, so uses original data
 ADOS.sim <- sim( m4 , n=1e4 )
 ADOS.HPDI <- apply( ADOS.sim , 2 , HPDI )
 
+#Making ASD a factor to plot it
 data4$ASD = as.factor(data4$ASD)
+
 library(RColorBrewer)
 #all palette available from RColorBrewer
 display.brewer.all()
-#we will select the first 4 colors in the Set1 palette
+#we will select the first 2 colors in the Set1 palette
 cols<-brewer.pal(n=2,name="Set1")
 #cols contain the names of four different colors
 #create a color vector corresponding to levels in the T1 variable in dat
@@ -378,21 +378,18 @@ plot(precis(m5))
 4.2. You have explored the relation between IQ and ADOS. How do you explain that relation from a cognitive perspective? N.B. You can present alternative hypotheses.
 
 ```{r setup, include=FALSE}
-#Loading data
+#Loading data, only TDs
 data5 = read.csv("Assignment3Data.csv")
 data5 = subset(data5, Visit == 1)
 data5 = subset(data5, ASD == 0)
-
-#Scaling the data
-data5 = read.csv("Assignment3Data.csv")
-data5 = subset(data5, Visit == 1)
-data5 = subset(data5, ASD == 1)
 data5 = na.omit(data5)
 
+#Scaling the data
 data5$NonVerbalIQ = scale(data5$NonVerbalIQ)
 data5$VerbalIQ = scale(data5$VerbalIQ)
 data5$SocialIQ = scale(data5$SocialIQ)
 
+# Create residual plots for each IQ
 #Social model
 m_S_TD <- map(alist(SocialIQ~dnorm(mu, sigma), 
                   mu <- a + b_V*VerbalIQ + b_NV*NonVerbalIQ, 
